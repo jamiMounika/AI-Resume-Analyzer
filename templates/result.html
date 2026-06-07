@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analysis Report — CareerMatch</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+ 
+<div class="page">
+ 
+  <nav>
+    <a href="/" class="nav-logo">
+      <span>⚡</span> CareerMatch
+    </a>
+    <span class="nav-badge">AI-Powered</span>
+  </nav>
+ 
+  <div class="result-page">
+ 
+    <a href="/" class="back-link">← Analyze Another Resume</a>
+ 
+    <!-- Header card -->
+    <div class="result-header">
+      <div>
+        <div class="score-circle">
+          <svg width="140" height="140" viewBox="0 0 140 140">
+            <circle class="track" cx="70" cy="70" r="56" stroke-width="8"/>
+            <circle class="fill" cx="70" cy="70" r="56" stroke-width="8"
+              id="scoreArc"
+              stroke="{% if score >= 80 %}#34d399{% elif score >= 50 %}#fbbf24{% else %}#f87171{% endif %}"
+              stroke-dasharray="351.86"
+              stroke-dashoffset="351.86"
+            />
+          </svg>
+          <div class="score-value">
+            <span class="score-num" style="color: {% if score >= 80 %}#34d399{% elif score >= 50 %}#fbbf24{% else %}#f87171{% endif %}">
+              {{ score }}
+            </span>
+            <span class="score-pct">/ 100</span>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="result-meta">
+        <h2>{{ role }}</h2>
+        <p>Career match analysis based on your resume content</p>
+ 
+        <span class="status-badge {% if score >= 80 %}ready{% elif score >= 50 %}partial{% else %}needs{% endif %}">
+          {% if score >= 80 %}🟢{% elif score >= 50 %}🟡{% else %}🔴{% endif %}
+          {{ status }}
+        </span>
+ 
+        <div class="result-stats" style="margin-top: 1rem;">
+          <div class="stat-box">
+            <div class="stat-num green">{{ matched | length }}</div>
+            <div class="stat-label">Skills Matched</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num coral">{{ missing | length }}</div>
+            <div class="stat-label">Skills Missing</div>
+          </div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- Skills grid -->
+    <div class="skills-grid">
+ 
+      <div class="skills-panel">
+        <h3>
+          <span style="color: var(--green);">✓</span>
+          Matched Skills
+          <span style="margin-left: auto; font-size: 12px; color: var(--text3); font-weight: 400;">{{ matched | length }} found</span>
+        </h3>
+        <div class="skills-list">
+          {% if matched %}
+            {% for skill in matched %}
+            <div class="skill-pill match">
+              <div class="dot"></div>
+              {{ skill }}
+            </div>
+            {% endfor %}
+          {% else %}
+            <p style="color: var(--text3); font-size: 13px; text-align: center; padding: 1rem 0;">No matching skills found</p>
+          {% endif %}
+        </div>
+      </div>
+ 
+      <div class="skills-panel">
+        <h3>
+          <span style="color: var(--coral);">✗</span>
+          Missing Skills
+          <span style="margin-left: auto; font-size: 12px; color: var(--text3); font-weight: 400;">{{ missing | length }} gaps</span>
+        </h3>
+        <div class="skills-list">
+          {% if missing %}
+            {% for skill in missing %}
+            <div class="skill-pill missing">
+              <div class="dot"></div>
+              {{ skill }}
+            </div>
+            {% endfor %}
+          {% else %}
+            <p style="color: var(--green); font-size: 13px; text-align: center; padding: 1rem 0;">🎉 No missing skills — perfect match!</p>
+          {% endif %}
+        </div>
+      </div>
+ 
+    </div>
+ 
+    <!-- Learning Roadmap -->
+    {% if missing %}
+    <div class="roadmap">
+      <h3>
+        <span style="color: var(--accent2);">🗺</span>
+        Your Learning Roadmap
+        <span style="margin-left: auto; font-size: 12px; color: var(--text3); font-weight: 400;">{{ missing | length }} skills to acquire</span>
+      </h3>
+      <div class="roadmap-list">
+        {% for skill in missing %}
+        <div class="roadmap-item">
+          <div class="roadmap-num">{{ loop.index }}</div>
+          <div class="roadmap-text">
+            <strong>{{ skill }}</strong>
+            <span>Add this skill to your resume to improve your match score</span>
+          </div>
+          <span style="font-size: 12px; color: var(--text3);">Priority {{ loop.index }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+ 
+    <!-- CTA -->
+    <div style="margin-top: 1.5rem; display: flex; gap: 12px; justify-content: center;">
+      <a href="/" class="btn btn-primary">Analyze Another Resume →</a>
+      <button class="btn btn-ghost" onclick="window.print()">📄 Export Report</button>
+    </div>
+ 
+  </div>
+</div>
+ 
+<script>
+  // Animate score circle on load
+  window.addEventListener('load', () => {
+    const score = {{ score }};
+    const arc = document.getElementById('scoreArc');
+    const circumference = 351.86;
+    const offset = circumference - (score / 100) * circumference;
+    setTimeout(() => {
+      arc.style.strokeDashoffset = offset;
+    }, 200);
+  });
+</script>
+ 
+</body>
+</html>
+ 

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CareerMatch — Resume Analyzer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+ 
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loader"></div>
+  <p class="loading-text">Analyzing your resume…</p>
+</div>
+ 
+<div class="page">
+ 
+  <nav>
+    <a href="/" class="nav-logo">
+      <span>⚡</span> CareerMatch
+    </a>
+    <span class="nav-badge">AI-Powered</span>
+  </nav>
+ 
+  <!-- STEP 1: HERO -->
+  <div id="step1" class="step-view">
+    <div class="hero">
+      <span class="hero-chip">Resume Intelligence</span>
+      <h1>Match Your Skills<br>to <em>Your Dream Role</em></h1>
+      <p class="hero-sub">Upload your resume and discover how well your skills align with any career path. Get a detailed analysis in seconds.</p>
+      <div class="steps">
+        <div class="step active" id="stepIndicator1">
+          <div class="step-num">1</div> Upload
+        </div>
+        <span class="step-arrow">→</span>
+        <div class="step" id="stepIndicator2">
+          <div class="step-num">2</div> Select Role
+        </div>
+        <span class="step-arrow">→</span>
+        <div class="step" id="stepIndicator3">
+          <div class="step-num">3</div> Results
+        </div>
+      </div>
+      <div style="margin-top: 1rem;">
+        <button class="btn btn-primary" onclick="goToUpload()" id="startBtn">
+          Get Started →
+        </button>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- STEP 2: UPLOAD -->
+  <form id="mainForm" action="/upload" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="role" id="selectedRoleInput">
+ 
+    <div id="step2" class="step-view" style="display:none;">
+      <div class="form-main">
+        <a href="#" class="back-link" onclick="backToHero(); return false;">← Back</a>
+ 
+        <div>
+          <div class="steps" style="margin-bottom: 2rem;">
+            <div class="step active">
+              <div class="step-num">1</div> Upload
+            </div>
+            <span class="step-arrow">→</span>
+            <div class="step">
+              <div class="step-num">2</div> Select Role
+            </div>
+            <span class="step-arrow">→</span>
+            <div class="step">
+              <div class="step-num">3</div> Results
+            </div>
+          </div>
+ 
+          <label class="form-label">Upload Your Resume</label>
+ 
+          <div class="upload-zone" id="uploadZone">
+            <input type="file" name="resume" accept=".pdf" id="fileInput" required>
+            <div class="upload-icon">📄</div>
+            <div class="upload-title">Drop your PDF here or click to browse</div>
+            <div class="upload-sub">Supports PDF files up to 10MB</div>
+          </div>
+ 
+          <div class="file-selected" id="fileSelected">
+            <span>📎</span>
+            <span id="fileName"></span>
+            <span style="margin-left: auto; color: var(--text3);">✓ Ready</span>
+          </div>
+        </div>
+ 
+        <button type="button" class="btn btn-primary btn-full" id="nextToRole" onclick="goToRoles()" disabled>
+          Continue to Role Selection →
+        </button>
+      </div>
+    </div>
+ 
+    <!-- STEP 3: ROLE SELECTION -->
+    <div id="step3" class="step-view" style="display:none;">
+      <div class="form-main" style="max-width: 860px;">
+        <a href="#" class="back-link" onclick="backToUpload(); return false;">← Back</a>
+ 
+        <div class="steps" style="margin-bottom: 2rem;">
+          <div class="step">
+            <div class="step-num">1</div> Upload
+          </div>
+          <span class="step-arrow">→</span>
+          <div class="step active">
+            <div class="step-num">2</div> Select Role
+          </div>
+          <span class="step-arrow">→</span>
+          <div class="step">
+            <div class="step-num">3</div> Results
+          </div>
+        </div>
+ 
+        <div>
+          <label class="form-label">Choose Your Target Career</label>
+          <p style="color: var(--text2); font-size: 14px; margin-bottom: 1.25rem;">Select the role you want to match your resume against.</p>
+ 
+          <div class="search-box">
+            <span style="color: var(--text3);">🔍</span>
+            <input type="text" id="roleSearch" placeholder="Search careers…" oninput="filterRoles(this.value)">
+          </div>
+ 
+          <div class="role-grid" id="roleGrid">
+            {% for career in careers %}
+            <div class="role-card" onclick="selectRole('{{ career }}', this)">
+              <div class="role-check" id="check-{{ loop.index }}"></div>
+              <div class="role-name">{{ career }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+ 
+        <div id="selectedRoleBanner" style="display:none; background: rgba(124,111,247,0.08); border: 1px solid rgba(124,111,247,0.25); border-radius: 10px; padding: 12px 16px; align-items: center; gap: 10px;">
+          <span style="color: var(--accent3);">✓</span>
+          <span style="font-size: 14px; font-weight: 500;">Selected: <span id="selectedRoleLabel" style="color: var(--accent2);"></span></span>
+        </div>
+ 
+        <button type="submit" class="btn btn-primary btn-full" id="analyzeBtn" disabled>
+          Analyze My Resume →
+        </button>
+      </div>
+    </div>
+ 
+  </form>
+ 
+</div>
+ 
+<script>
+  let selectedRole = '';
+ 
+  function goToUpload() {
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+ 
+  function backToHero() {
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('step1').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+ 
+  function goToRoles() {
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('step3').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+ 
+  function backToUpload() {
+    document.getElementById('step3').style.display = 'none';
+    document.getElementById('step2').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+ 
+  // File input
+  document.getElementById('fileInput').addEventListener('change', function() {
+    if (this.files.length > 0) {
+      const name = this.files[0].name;
+      document.getElementById('fileName').textContent = name;
+      document.getElementById('fileSelected').style.display = 'flex';
+      document.getElementById('nextToRole').disabled = false;
+    }
+  });
+ 
+  // Drag & drop
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') {
+      const input = document.getElementById('fileInput');
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+      input.dispatchEvent(new Event('change'));
+    }
+  });
+ 
+  // Role selection
+  function selectRole(role, el) {
+    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedRole = role;
+    document.getElementById('selectedRoleInput').value = role;
+    document.getElementById('selectedRoleLabel').textContent = role;
+    document.getElementById('selectedRoleBanner').style.display = 'flex';
+    document.getElementById('analyzeBtn').disabled = false;
+  }
+ 
+  // Search
+  function filterRoles(q) {
+    const term = q.toLowerCase();
+    document.querySelectorAll('.role-card').forEach(card => {
+      const name = card.querySelector('.role-name').textContent.toLowerCase();
+      card.style.display = name.includes(term) ? '' : 'none';
+    });
+  }
+ 
+  function submitForm() {
+    document.getElementById('loadingOverlay').classList.add('show');
+  }
+</script>
+ 
+</body>
+</html>
